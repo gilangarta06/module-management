@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #1E1E2E;
+  --card: #2A2A40;
+  --text: #FFFFFF;
+  --primary: #04D404;
+  --accent: #3B82F6;
+}
+
+html, body, #__next {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 1rem;
+}
+button.primary {
+  background: var(--primary);
+  color: black;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
