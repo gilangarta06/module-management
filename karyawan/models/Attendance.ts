@@ -1,26 +1,24 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IAttendance {
-  karyawanId?: mongoose.Types.ObjectId;
-  nama: string;
-  jabatan: string;
-  fotoPath: string;
+export interface IAttendance extends Document {
+  employeeName: string;
+  position: string;
+  photoPath?: string;
   lat: number;
   lng: number;
-  status: "accepted" | "rejected";
-  reason?: string;
-  createdAt?: Date;
+  distance: number;
+  status: 'accepted' | 'rejected';
+  createdAt: Date;
 }
 
-const AttendanceSchema = new Schema<IAttendance>({
-  karyawanId: { type: Schema.Types.ObjectId, ref: "Karyawan" },
-  nama: { type: String, required: true },
-  jabatan: { type: String, required: true },
-  fotoPath: { type: String, required: true },
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true },
-  status: { type: String, enum: ["accepted", "rejected"], required: true },
-  reason: { type: String }
+const AttendanceSchema: Schema = new Schema({
+  employeeName: String,
+  position: String,
+  photoPath: String,
+  lat: Number,
+  lng: Number,
+  distance: Number,
+  status: { type: String, enum: ['accepted', 'rejected'], default: 'accepted' },
 }, { timestamps: true });
 
-export default mongoose.models.Attendance || mongoose.model("Attendance", AttendanceSchema);
+export default mongoose.models.Attendance || mongoose.model<IAttendance>('Attendance', AttendanceSchema);

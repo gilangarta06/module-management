@@ -1,19 +1,19 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface ISettings {
+export interface ISettings extends Document {
   officeLat: number;
   officeLng: number;
-  radiusMeters: number;
-  jamMasuk: string;
-  jamPulang: string;
+  radiusMeter: number;
+  workStart: string;
+  workEnd: string;
 }
 
-const SettingsSchema = new Schema<ISettings>({
-  officeLat: { type: Number, required: true, default: 0 },
-  officeLng: { type: Number, required: true, default: 0 },
-  radiusMeters: { type: Number, required: true, default: 100 },
-  jamMasuk: { type: String, required: true, default: "09:00" },
-  jamPulang: { type: String, required: true, default: "17:00" },
+const SettingsSchema: Schema = new Schema({
+  officeLat: { type: Number, default: 0 },
+  officeLng: { type: Number, default: 0 },
+  radiusMeter: { type: Number, default: 100 },
+  workStart: { type: String, default: '08:00' },
+  workEnd: { type: String, default: '17:00' },
 }, { timestamps: true });
 
-export default mongoose.models.Settings || mongoose.model("Settings", SettingsSchema);
+export default mongoose.models.Settings || mongoose.model<ISettings>('Settings', SettingsSchema);
