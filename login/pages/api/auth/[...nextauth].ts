@@ -9,7 +9,6 @@ import User from '../../../models/User';
 import bcrypt from 'bcryptjs';
 
 export default NextAuth({
-  // Use JSON Web Tokens for session
   session: { strategy: 'jwt' },
   providers: [
     GoogleProvider({
@@ -50,28 +49,23 @@ export default NextAuth({
         if (!isValid) {
           throw new Error('Invalid credentials');
         }
-        // Return user object (minimal)
         return { id: user._id.toString(), email: user.email, name: user.name, provider: user.provider };
       },
     }),
   ],
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
-      // Ensure DB connected and user exists in DB for OAuth logins
       await connectToDatabase();
       try {
         if (account && account.provider && account.type === 'oauth') {
-          // check if user exists
           const existing = await User.findOne({ email: (user.email as string) });
           if (!existing) {
-            // create
             await User.create({
               name: user.name || profile?.name || '',
               email: user.email,
               provider: account.provider,
             });
           } else {
-            // update provider if missing
             if (!existing.provider || existing.provider !== account.provider) {
               existing.provider = account.provider;
               await existing.save();
@@ -85,7 +79,6 @@ export default NextAuth({
       }
     },
     async jwt({ token, user }) {
-      // first time jwt callback run, user object is available
       if (user) {
         token.id = (user as any).id || token.sub;
       }

@@ -16,6 +16,5 @@ const UserSchema = new Schema<IUser>({
   provider: { type: String, required: true, default: 'credentials' },
 }, { timestamps: true });
 
-// Prevent model overwrite upon hot reload in development
 const User: Model<IUser> = (mongoose.models.User as Model<IUser>) || mongoose.model<IUser>('User', UserSchema);
 export default User;
