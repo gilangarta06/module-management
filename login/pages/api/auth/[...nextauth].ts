@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth';
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import FacebookProvider from 'next-auth/providers/facebook';
 import GithubProvider from 'next-auth/providers/github';
@@ -8,7 +8,7 @@ import { connectToDatabase } from '../../../lib/mongoose';
 import User from '../../../models/User';
 import bcrypt from 'bcryptjs';
 
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt' },
   providers: [
     GoogleProvider({
@@ -39,37 +39,36 @@ export default NextAuth({
           throw new Error('Email and password required');
         }
         const user = await User.findOne({ email: credentials.email });
-        if (!user) {
-          throw new Error('No user found with that email');
-        }
-        if (!user.password) {
-          throw new Error('User has no local password, please use OAuth provider');
-        }
+        if (!user) throw new Error('No user found with that email');
+        if (!user.password) throw new Error('Use OAuth provider to login');
+
         const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) {
-          throw new Error('Invalid credentials');
-        }
-        return { id: user._id.toString(), email: user.email, name: user.name, provider: user.provider };
+        if (!isValid) throw new Error('Invalid credentials');
+
+        return { 
+          id: String(user._id), 
+          email: user.email, 
+          name: user.name, 
+          provider: user.provider 
+        };
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user, account, profile }) {
       await connectToDatabase();
       try {
         if (account && account.provider && account.type === 'oauth') {
-          const existing = await User.findOne({ email: (user.email as string) });
+          const existing = await User.findOne({ email: user.email as string });
           if (!existing) {
             await User.create({
               name: user.name || profile?.name || '',
               email: user.email,
               provider: account.provider,
             });
-          } else {
-            if (!existing.provider || existing.provider !== account.provider) {
-              existing.provider = account.provider;
-              await existing.save();
-            }
+          } else if (existing.provider !== account.provider) {
+            existing.provider = account.provider;
+            await existing.save();
           }
         }
         return true;
@@ -79,20 +78,16 @@ export default NextAuth({
       }
     },
     async jwt({ token, user }) {
-      if (user) {
-        token.id = (user as any).id || token.sub;
-      }
+      if (user) token.id = (user as any).id || token.sub;
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
-      }
+      if (token && session.user) session.user.id = token.id as string;
       return session;
-    }
+    },
   },
-  pages: {
-    signIn: '/auth/login',
-  },
+  pages: { signIn: '/auth/login' },
   secret: process.env.NEXTAUTH_SECRET,
-});
+};
+
+export default NextAuth(authOptions);
